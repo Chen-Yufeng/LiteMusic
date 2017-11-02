@@ -1,8 +1,10 @@
 package swipedelmenu.mcxtzhang.litemusic.service;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -28,6 +30,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private AudioManager audioManager;
     private final String TAG = "@vir MediaPlayerService";
     private String path;
+    public final static String PLAY_NEW = "PLAY_NEW";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -39,6 +42,20 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             initMediaPlayer();
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        IntentFilter intentFilter = new IntentFilter(PLAY_NEW);
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                stopMedia();
+                String path = intent.getStringExtra(MainActivity.INTENT_MEDIA);
+                initMediaPlayer();
+            }
+        },intentFilter);
     }
 
     @Override
@@ -202,5 +219,12 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         //use newer later
         return AudioManager.AUDIOFOCUS_REQUEST_GRANTED ==
                 audioManager.abandonAudioFocus(this);
+    }
+
+    class ServiceBroadCastReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        }
     }
 }

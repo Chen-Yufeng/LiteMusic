@@ -1,6 +1,5 @@
 package swipedelmenu.mcxtzhang.litemusic;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,11 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.OpenableColumns;
+import android.provider.DocumentsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -64,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         AudioSetBroadcastReceiver audioSetBroadcastReceiver = new AudioSetBroadcastReceiver();
         //may be wrong
         IntentFilter intentFilter = new IntentFilter("com.ifchan.litemusic.PLAY");
-        registerReceiver(audioSetBroadcastReceiver,intentFilter);
+        registerReceiver(audioSetBroadcastReceiver, intentFilter);
     }
 
     @Override
@@ -106,12 +103,15 @@ public class MainActivity extends AppCompatActivity {
     private void playAudio(String path) {
         if (!serviceBound) {
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
-            playerIntent.putExtra(INTENT_MEDIA,path);
+            playerIntent.putExtra(INTENT_MEDIA, path);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
             //Service is active
             //Send media with BroadcastReceiver
+            Intent playNewIntent = new Intent(MediaPlayerService.PLAY_NEW);
+            playNewIntent.putExtra(INTENT_MEDIA,path);
+            sendBroadcast(playNewIntent);
         }
     }
 
@@ -128,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             // TODO: 11/2/17 complete it!
-            Log.d(TAG, "onReceive: intent = "+intent);
-            int position = intent.getIntExtra("POSITION",0);
+            Log.d(TAG, "onReceive: intent = " + intent);
+            int position = intent.getIntExtra("POSITION", 0);
             playAudio(audioList.get(position).getPath());
         }
     }
@@ -164,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("file/*");
+//        intent.setType(DocumentsContract.Document.MIME_TYPE_DIR);
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
@@ -174,14 +175,18 @@ public class MainActivity extends AppCompatActivity {
 
         String folderPath = resultData.getDataString().substring(7);
         //TODO handle your request here
-        Log.d(TAG, "onActivityResult: floderPath = "+folderPath.toString());
+        Log.d(TAG, "onActivityResult: floderPath = " + folderPath.toString());
         initializeAudioNameAndPath(folderPath);
         super.onActivityResult(requestCode, resultCode, resultData);
     }
 
     private void initializeAudioNameAndPath(String path) {
-        audioList.add(new Audio(path.substring(path.lastIndexOf('/')),path));
-        Log.d(TAG, "initializeAudioNameAndPath: name = "+path.substring(path.lastIndexOf('/')+1));
+        audioList.add(new Audio(path.substring(path.lastIndexOf('/')+1), path));
+        for (Audio a : audioList) {
+            Log.d(TAG, "initializeAudioNameAndPath: Audio="+a);
+        }
+        Log.d(TAG, "initializeAudioNameAndPath: name = " + path.substring(path.lastIndexOf('/') +
+                1));
         mediaAdapter.notifyItemInserted(audioList.size() - 1);
     }
 }

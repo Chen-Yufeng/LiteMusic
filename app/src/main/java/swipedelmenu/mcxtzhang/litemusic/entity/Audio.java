@@ -4,16 +4,17 @@ import java.io.Serializable;
 
 public class Audio implements Serializable {
 
-    private String data;
     private String title;
-    private String album;
-    private String artist;
+    private String data;
 
-    public Audio(String data, String title, String album, String artist) {
-        this.data = data;
+
+    public Audio(String title, String data) {
         this.title = title;
-        this.album = album;
-        this.artist = artist;
+        this.data = data;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public String getData() {
@@ -24,27 +25,8 @@ public class Audio implements Serializable {
         this.data = data;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
     public void setTitle(String title) {
         this.title = title;
     }
 
-    public String getAlbum() {
-        return album;
-    }
-
-    public void setAlbum(String album) {
-        this.album = album;
-    }
-
-    public String getArtist() {
-        return artist;
-    }
-
-    public void setArtist(String artist) {
-        this.artist = artist;
-    }
 }

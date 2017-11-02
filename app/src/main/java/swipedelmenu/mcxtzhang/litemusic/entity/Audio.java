@@ -1,28 +1,30 @@
 package swipedelmenu.mcxtzhang.litemusic.entity;
 
+import android.net.Uri;
+
+import java.io.OutputStream;
 import java.io.Serializable;
 
 public class Audio implements Serializable {
 
     private String title;
-    private String data;
+    private Uri uri;
 
-
-    public Audio(String title, String data) {
+    public Audio(String title, Uri uri) {
         this.title = title;
-        this.data = data;
+        this.uri = uri;
+    }
+
+    public Uri getUri() {
+        return uri;
+    }
+
+    public void setUri(Uri uri) {
+        this.uri = uri;
     }
 
     public String getTitle() {
         return title;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
     }
 
     public void setTitle(String title) {

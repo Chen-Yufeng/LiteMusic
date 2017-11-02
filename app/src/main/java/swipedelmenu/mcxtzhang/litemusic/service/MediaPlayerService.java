@@ -3,16 +3,17 @@ package swipedelmenu.mcxtzhang.litemusic.service;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioFocusRequest;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
-import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.io.IOException;
+
+import swipedelmenu.mcxtzhang.litemusic.MainActivity;
 
 public class MediaPlayerService extends Service implements MediaPlayer.OnCompletionListener,
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer
@@ -24,21 +25,22 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private final IBinder iBinder = new LocalBinder();
     private MediaPlayer mediaPlayer;
     //path to the audio file
-    private String mediaFile;
+    private Uri mUri;
     private int resumePosition;
     private AudioManager audioManager;
+    private final String TAG = "@vir MediaPlayerService";
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         try {
-            mediaFile = intent.getExtras().getString("media");
+            mUri = intent.getParcelableExtra(MainActivity.INTENT_MEDIA);
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
         if (requestAudioFocus() == false) {
             stopSelf();
         }
-        if (mediaFile != null && mediaFile != "") {
+        if (mUri != null) {
             initMediaPlayer();
         }
         return super.onStartCommand(intent, flags, startId);
@@ -68,7 +70,9 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         try {
-            mediaPlayer.setDataSource(mediaFile);
+            Log.d(TAG, "initMediaPlayer: mUri = "+mUri.toString());
+            // TODO: 11/2/17 may be wrong
+            mediaPlayer.setDataSource(getApplicationContext(), mUri);
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();

@@ -12,7 +12,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -25,10 +24,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +34,7 @@ import swipedelmenu.mcxtzhang.litemusic.service.MediaPlayerService;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
+    public final static String INTENT_MEDIA = "MEDIA";
     private MediaPlayerService player;
     boolean serviceBound = false;
     List<Audio> audioList = new ArrayList<>();
@@ -107,10 +103,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void playAudio(String media) {
+    private void playAudio(Uri uri) {
         if (!serviceBound) {
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
-            playerIntent.putExtra("media", media);
+            playerIntent.putExtra(INTENT_MEDIA,uri);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
@@ -121,12 +117,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadAudio(ArrayList<Audio> audioList) {
         this.audioList.addAll(audioList);
-        Log.d(TAG, "loadAudio: Audio = " + audioList.get(0).toString());
     }
 
     private void loadAudio(Audio audio) {
         this.audioList.add(audio);
-        Log.d(TAG, "loadAudio: Audio = " + audioList.get(0).toString());
     }
 
     class AudioSetBroadcastReceiver extends BroadcastReceiver {
@@ -135,9 +129,8 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             // TODO: 11/2/17 complete it!
             Log.d(TAG, "onReceive: intent = "+intent);
-            Log.d(TAG, "onReceive: "+audioList.get(0).getData());
             int position = intent.getIntExtra("POSITION",0);
-            playAudio(audioList.get(position).getData());
+            playAudio(audioList.get(position).getUri());
         }
     }
 
@@ -218,18 +211,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializeAudioNameAndPath(Uri uri) {
         Log.d(TAG, "initializeAudioNameAndPath: uri = " + uri);
-        OutputStream outputStream = null;
-        try {
-           outputStream = getContentResolver().openOutputStream(uri);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                outputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
         Cursor cursor = getContentResolver()
                 .query(uri, null, null, null, null, null);
         try {
@@ -238,11 +219,11 @@ public class MainActivity extends AppCompatActivity {
 //                        .TITLE));
                 String title = cursor.getString(
                         cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                
+
                 Log.d(TAG, "initializeAudioNameAndPath: title = " + title);
-//                loadAudio(new Audio(title, data));
+                loadAudio(new Audio(title, uri));
 //                loadAudio(new Audio("test","/sdcard/Download/testmusic.mp3"));
-//                mediaAdapter.notifyItemInserted(audioList.size() - 1);
+                mediaAdapter.notifyItemInserted(audioList.size() - 1);
             }
         } catch (Exception e){
             e.printStackTrace();

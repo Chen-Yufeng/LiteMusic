@@ -8,19 +8,11 @@ import java.io.Serializable;
 public class Audio implements Serializable {
 
     private String title;
-    private Uri uri;
+    private String path;
 
-    public Audio(String title, Uri uri) {
+    public Audio(String title, String path) {
         this.title = title;
-        this.uri = uri;
-    }
-
-    public Uri getUri() {
-        return uri;
-    }
-
-    public void setUri(Uri uri) {
-        this.uri = uri;
+        this.path = path;
     }
 
     public String getTitle() {
@@ -31,4 +23,11 @@ public class Audio implements Serializable {
         this.title = title;
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 }

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -25,22 +24,18 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     private final IBinder iBinder = new LocalBinder();
     private MediaPlayer mediaPlayer;
     //path to the audio file
-    private Uri mUri;
     private int resumePosition;
     private AudioManager audioManager;
     private final String TAG = "@vir MediaPlayerService";
+    private String path;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        try {
-            mUri = intent.getParcelableExtra(MainActivity.INTENT_MEDIA);
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
+        path = intent.getStringExtra(MainActivity.INTENT_MEDIA);
         if (requestAudioFocus() == false) {
             stopSelf();
         }
-        if (mUri != null) {
+        if (path != null) {
             initMediaPlayer();
         }
         return super.onStartCommand(intent, flags, startId);
@@ -70,9 +65,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
 
         try {
-            Log.d(TAG, "initMediaPlayer: mUri = "+mUri.toString());
-            // TODO: 11/2/17 may be wrong
-            mediaPlayer.setDataSource(getApplicationContext(), mUri);
+            mediaPlayer.setDataSource(path);
         } catch (IOException e) {
             e.printStackTrace();
             stopSelf();

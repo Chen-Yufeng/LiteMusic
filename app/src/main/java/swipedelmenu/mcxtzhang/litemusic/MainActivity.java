@@ -103,10 +103,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void playAudio(Uri uri) {
+    private void playAudio(String path) {
         if (!serviceBound) {
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
-            playerIntent.putExtra(INTENT_MEDIA,uri);
+            playerIntent.putExtra(INTENT_MEDIA,path);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
             // TODO: 11/2/17 complete it!
             Log.d(TAG, "onReceive: intent = "+intent);
             int position = intent.getIntExtra("POSITION",0);
-            playAudio(audioList.get(position).getUri());
+            playAudio(audioList.get(position).getPath());
         }
     }
 
@@ -162,22 +162,8 @@ public class MainActivity extends AppCompatActivity {
      */
     public void performFileSearch() {
 
-        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
-        // browser.
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-
-        // Filter to only show results that can be "opened", such as a
-        // file (as opposed to a list of contacts or timezones)
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-
-        // Filter to show only images, using the image MIME data type.
-        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
-        // To search for all documents available via installed storage providers,
-        // it would be "*/*".
-
-        //MAY BE A ERROR!!!
-        intent.setType("audio/*");
-
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("file/*");
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
@@ -186,49 +172,16 @@ public class MainActivity extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {
 
-        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
-        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
-        // response to some other intent, and the code below shouldn't run at all.
-
-        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-            // The document selected by the user won't be returned in the intent.
-            // Instead, a URI to that document will be contained in the return intent
-            // provided to this method as a parameter.
-            // Pull that URI using resultData.getData().
-            Uri uri = null;
-            if (resultData != null) {
-                uri = resultData.getData();
-//                Log.d(TAG, "onActivityResult: uri = " + uri);
-//                File file = new File(uri.getPath());
-//                Log.d(TAG, "onActivityResult: file = " + file.getName() + " / " + file.getPath());
-//                loadAudio(new Audio(file.getName(), file.getPath()));
-//                mediaAdapter.notifyItemInserted(audioList.size() - 1);
-                initializeAudioNameAndPath(uri);
-
-            }
-        }
+        String folderPath = resultData.getDataString().substring(7);
+        //TODO handle your request here
+        Log.d(TAG, "onActivityResult: floderPath = "+folderPath.toString());
+        initializeAudioNameAndPath(folderPath);
+        super.onActivityResult(requestCode, resultCode, resultData);
     }
 
-    private void initializeAudioNameAndPath(Uri uri) {
-        Log.d(TAG, "initializeAudioNameAndPath: uri = " + uri);
-        Cursor cursor = getContentResolver()
-                .query(uri, null, null, null, null, null);
-        try {
-            if (cursor != null && cursor.moveToFirst()) {
-//                String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media
-//                        .TITLE));
-                String title = cursor.getString(
-                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-
-                Log.d(TAG, "initializeAudioNameAndPath: title = " + title);
-                loadAudio(new Audio(title, uri));
-//                loadAudio(new Audio("test","/sdcard/Download/testmusic.mp3"));
-                mediaAdapter.notifyItemInserted(audioList.size() - 1);
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-        }finally {
-            cursor.close();
-        }
+    private void initializeAudioNameAndPath(String path) {
+        audioList.add(new Audio(path.substring(path.lastIndexOf('/')),path));
+        Log.d(TAG, "initializeAudioNameAndPath: name = "+path.substring(path.lastIndexOf('/')+1));
+        mediaAdapter.notifyItemInserted(audioList.size() - 1);
     }
 }

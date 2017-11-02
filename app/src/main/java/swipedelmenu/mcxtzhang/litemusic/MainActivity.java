@@ -1,22 +1,38 @@
 package swipedelmenu.mcxtzhang.litemusic;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Bundle;
 import android.os.IBinder;
-import android.support.constraint.solver.ArrayLinkedVariables;
+import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.List;
 
+import swipedelmenu.mcxtzhang.litemusic.adapter.MediaAdapter;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
 import swipedelmenu.mcxtzhang.litemusic.service.MediaPlayerService;
 
@@ -25,8 +41,9 @@ import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 public class MainActivity extends AppCompatActivity {
     private MediaPlayerService player;
     boolean serviceBound = false;
-    ArrayList<Audio> audioList;
+    List<Audio> audioList = new ArrayList<>();
     private final String TAG = "@vir MainActivity";
+    MediaAdapter mediaAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,17 +52,23 @@ public class MainActivity extends AppCompatActivity {
 
         if (ContextCompat.checkSelfPermission(MainActivity.this, READ_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this,new
-                    String[]{READ_EXTERNAL_STORAGE},1);
+            ActivityCompat.requestPermissions(MainActivity.this, new
+                    String[]{READ_EXTERNAL_STORAGE}, 1);
         }
-        loadAudio();
-        playAudio(audioList.get(0).getData());
 
-        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        //test
+
+
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        MediaAdapter mediaAdapter = new MediaAdapter(audioList);
+        mediaAdapter = new MediaAdapter(audioList, MainActivity.this);
         recyclerView.setAdapter(mediaAdapter);
+
+        AudioSetBroadcastReceiver audioSetBroadcastReceiver = new AudioSetBroadcastReceiver();
+        //may be wrong
+        IntentFilter intentFilter = new IntentFilter("com.ifchan.litemusic.PLAY");
+        registerReceiver(audioSetBroadcastReceiver,intentFilter);
     }
 
     @Override
@@ -96,17 +119,135 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void loadAudio() {
-        audioList.add(new Audio("Alarm_Beep_01.ogg",
-                "/system/media/audio/alarms/Alarm_Beep_01.ogg"));
-        Log.d(TAG, "loadAudio: Audio = "+audioList.get(0).toString());
+    private void loadAudio(ArrayList<Audio> audioList) {
+        this.audioList.addAll(audioList);
+        Log.d(TAG, "loadAudio: Audio = " + audioList.get(0).toString());
+    }
+
+    private void loadAudio(Audio audio) {
+        this.audioList.add(audio);
+        Log.d(TAG, "loadAudio: Audio = " + audioList.get(0).toString());
     }
 
     class AudioSetBroadcastReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            // TODO: 11/2/17 complete it!
+            Log.d(TAG, "onReceive: intent = "+intent);
+            Log.d(TAG, "onReceive: "+audioList.get(0).getData());
+            int position = intent.getIntExtra("POSITION",0);
+            playAudio(audioList.get(position).getData());
+        }
+    }
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle item selection
+        switch (item.getItemId()) {
+            case R.id.addFile:
+                performFileSearch();
+                return true;
+            case R.id.addFolder:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private static final int READ_REQUEST_CODE = 42;
+
+    /**
+     * Fires an intent to spin up the "file chooser" UI and select an image.
+     */
+    public void performFileSearch() {
+
+        // ACTION_OPEN_DOCUMENT is the intent to choose a file via the system's file
+        // browser.
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+
+        // Filter to only show results that can be "opened", such as a
+        // file (as opposed to a list of contacts or timezones)
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        // Filter to show only images, using the image MIME data type.
+        // If one wanted to search for ogg vorbis files, the type would be "audio/ogg".
+        // To search for all documents available via installed storage providers,
+        // it would be "*/*".
+
+        //MAY BE A ERROR!!!
+        intent.setType("audio/*");
+
+        startActivityForResult(intent, READ_REQUEST_CODE);
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+
+        // The ACTION_OPEN_DOCUMENT intent was sent with the request code
+        // READ_REQUEST_CODE. If the request code seen here doesn't match, it's the
+        // response to some other intent, and the code below shouldn't run at all.
+
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+            // The document selected by the user won't be returned in the intent.
+            // Instead, a URI to that document will be contained in the return intent
+            // provided to this method as a parameter.
+            // Pull that URI using resultData.getData().
+            Uri uri = null;
+            if (resultData != null) {
+                uri = resultData.getData();
+//                Log.d(TAG, "onActivityResult: uri = " + uri);
+//                File file = new File(uri.getPath());
+//                Log.d(TAG, "onActivityResult: file = " + file.getName() + " / " + file.getPath());
+//                loadAudio(new Audio(file.getName(), file.getPath()));
+//                mediaAdapter.notifyItemInserted(audioList.size() - 1);
+                initializeAudioNameAndPath(uri);
+
+            }
+        }
+    }
+
+    private void initializeAudioNameAndPath(Uri uri) {
+        Log.d(TAG, "initializeAudioNameAndPath: uri = " + uri);
+        OutputStream outputStream = null;
+        try {
+           outputStream = getContentResolver().openOutputStream(uri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        Cursor cursor = getContentResolver()
+                .query(uri, null, null, null, null, null);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+//                String title = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media
+//                        .TITLE));
+                String title = cursor.getString(
+                        cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                
+                Log.d(TAG, "initializeAudioNameAndPath: title = " + title);
+//                loadAudio(new Audio(title, data));
+//                loadAudio(new Audio("test","/sdcard/Download/testmusic.mp3"));
+//                mediaAdapter.notifyItemInserted(audioList.size() - 1);
+            }
+        } catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            cursor.close();
         }
     }
 }

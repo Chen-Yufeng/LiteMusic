@@ -1,7 +1,9 @@
 package swipedelmenu.mcxtzhang.litemusic.adapter;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,10 +18,14 @@ import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
 
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> {
 
+    public final static String PLAY_INTENT = "com.ifchan.litemusic.PLAY";
     private List<Audio> audioList;
+    private Context mContext;
+    private final String TAG = "@vir MediaAdapter";
 
-    public MediaAdapter(List<Audio> audioList) {
+    public MediaAdapter(List<Audio> audioList, Context context) {
         this.audioList = audioList;
+        mContext = context;
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
@@ -41,7 +47,11 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
         holder.mediaView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent("")
+                Log.d(TAG, "onClick: ");
+                Intent intent = new Intent(PLAY_INTENT);
+                intent.putExtra("POSITION",holder.getAdapterPosition());
+                mContext.sendBroadcast(intent);
+                Log.d(TAG, "onClick: intent= "+intent);
             }
         });
         return holder;

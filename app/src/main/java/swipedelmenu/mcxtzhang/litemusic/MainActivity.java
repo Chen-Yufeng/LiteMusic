@@ -9,7 +9,6 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.provider.DocumentsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -22,7 +21,6 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import swipedelmenu.mcxtzhang.litemusic.adapter.MediaAdapter;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
@@ -34,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public final static String INTENT_MEDIA = "MEDIA";
     private MediaPlayerService player;
     boolean serviceBound = false;
-    List<Audio> audioList = new ArrayList<>();
+    ArrayList<Audio> audioList = new ArrayList<>();
     private final String TAG = "@vir MainActivity";
     MediaAdapter mediaAdapter;
 
@@ -49,14 +47,16 @@ public class MainActivity extends AppCompatActivity {
                     String[]{READ_EXTERNAL_STORAGE}, 1);
         }
 
-        //test
-
-
+        loadAudio(new Audio("1", "/sdcard/Download/b.mp3"));
+//        mediaAdapter.notifyItemInserted(audioList.size() - 1);
+        loadAudio(new Audio("2", "/sdcard/Download/testmusic.mp3"));
+//        mediaAdapter.notifyItemInserted(audioList.size() - 1);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        mediaAdapter = new MediaAdapter(audioList, MainActivity.this);
+        mediaAdapter = new MediaAdapter(audioList,this);
         recyclerView.setAdapter(mediaAdapter);
+
 
         AudioSetBroadcastReceiver audioSetBroadcastReceiver = new AudioSetBroadcastReceiver();
         //may be wrong
@@ -100,17 +100,19 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private void playAudio(String path) {
+    private void playAudio(int position) {
         if (!serviceBound) {
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
-            playerIntent.putExtra(INTENT_MEDIA, path);
+            playerIntent.putExtra(INTENT_MEDIA, audioList);
+            playerIntent.putExtra("position",position);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
             //Service is active
             //Send media with BroadcastReceiver
             Intent playNewIntent = new Intent(MediaPlayerService.PLAY_NEW);
-            playNewIntent.putExtra(INTENT_MEDIA,path);
+            playNewIntent.putExtra(INTENT_MEDIA,audioList);
+            playNewIntent.putExtra("position",position);
             sendBroadcast(playNewIntent);
         }
     }
@@ -130,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             // TODO: 11/2/17 complete it!
             Log.d(TAG, "onReceive: intent = " + intent);
             int position = intent.getIntExtra("POSITION", 0);
-            playAudio(audioList.get(position).getPath());
+            playAudio(position);
         }
     }
 

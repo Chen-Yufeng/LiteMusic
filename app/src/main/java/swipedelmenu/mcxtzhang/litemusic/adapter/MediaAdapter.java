@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import swipedelmenu.mcxtzhang.litemusic.R;
@@ -26,9 +25,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
     public MediaAdapter(List<Audio> audioList, Context context) {
         this.audioList = audioList;
         mContext = context;
+        for (Audio a : audioList) {
+            Log.d(TAG, "MediaAdapter: audio="+a.toString());
+        }
     }
 
-    static class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         TextView textViewMediaName;
         View mediaView;
 
@@ -41,7 +43,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item, parent
+        View view = LayoutInflater.from(mContext).inflate(R.layout.item, parent
                 , false);
         final ViewHolder holder = new ViewHolder(view);
         holder.mediaView.setOnClickListener(new View.OnClickListener() {

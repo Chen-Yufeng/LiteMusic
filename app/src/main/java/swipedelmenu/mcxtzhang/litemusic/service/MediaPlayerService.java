@@ -46,7 +46,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     public final static String PLAY_NEW = "PLAY_NEW";
     public static final String ACTION_PLAY = "com.valdioveliu.valdio.audioplayer.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.valdioveliu.valdio.audioplayer.ACTION_PAUSE";
-    public static final String ACTION_PREVIOUS = "com.valdioveliu.valdio.audioplayer.ACTION_PREVIOUS";
+    public static final String ACTION_PREVIOUS = "com.valdioveliu.valdio.audioplayer" +
+            ".ACTION_PREVIOUS";
     public static final String ACTION_NEXT = "com.valdioveliu.valdio.audioplayer.ACTION_NEXT";
     public static final String ACTION_STOP = "com.valdioveliu.valdio.audioplayer.ACTION_STOP";
 
@@ -66,7 +67,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         audioList = (ArrayList<Audio>) intent.getSerializableExtra(MainActivity.INTENT_MEDIA);
-        position = intent.getIntExtra("position",0);
+        position = intent.getIntExtra("position", 0);
         try {
             initMediaSession();
             buildNotification(PlaybackStatus.PLAYING);
@@ -91,10 +92,41 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             @Override
             public void onReceive(Context context, Intent intent) {
                 stopMedia();
-                position = intent.getIntExtra("position",0);
+                position = intent.getIntExtra("position", 0);
                 initMediaPlayer();
             }
-        },intentFilter);
+        }, intentFilter);
+// TODO: 11/3/17 完成他
+        IntentFilter intentFilter2 = new IntentFilter();
+        intentFilter2.addAction(ACTION_PAUSE);
+        intentFilter2.addAction(ACTION_PLAY);
+        intentFilter2.addAction(ACTION_NEXT);
+        intentFilter2.addAction(ACTION_PREVIOUS);
+        registerReceiver(new BroadcastReceiver() {
+            boolean isPaused = false;
+
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                int todo = intent.getIntExtra("todo", 0);
+                switch (todo) {
+                    case 1:
+                        if (isPaused) {
+                            playMedia();
+                            isPaused = false;
+                        } else {
+                            pauseMedia();
+                            isPaused = true;
+                        }
+                        break;
+                    case 2:
+                        skipToNext();
+                        break;
+                    case 3:
+                        skipToPrevious();
+                        break;
+                }
+            }
+        }, intentFilter2);
     }
 
     @Override
@@ -291,14 +323,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             public void onPlay() {
                 super.onPlay();
                 resumeMedia();
-                buildNotification(PlaybackStatus.PLAYING);
+//                buildNotification(PlaybackStatus.PLAYING);
             }
 
             @Override
             public void onPause() {
                 super.onPause();
                 pauseMedia();
-                buildNotification(PlaybackStatus.PAUSED);
+//                buildNotification(PlaybackStatus.PAUSED);
             }
 
             @Override
@@ -306,7 +338,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onSkipToNext();
                 skipToNext();
                 updateMetaData();
-                buildNotification(PlaybackStatus.PLAYING);
+//                buildNotification(PlaybackStatus.PLAYING);
             }
 
             @Override
@@ -314,7 +346,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 super.onSkipToPrevious();
                 skipToPrevious();
                 updateMetaData();
-                buildNotification(PlaybackStatus.PLAYING);
+//                buildNotification(PlaybackStatus.PLAYING);
             }
 
             @Override
@@ -337,11 +369,13 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 //                R.drawable.image); //replace with medias albumArt
         // Update the current metadata
         mediaSession.setMetadata(new MediaMetadataCompat.Builder()
-                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(getResources(),
-                        R.mipmap.ic_launcher))
+                .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, BitmapFactory
+                        .decodeResource(getResources(),
+                                R.mipmap.ic_launcher))
                 .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, "artist")
                 .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, "album")
-                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, audioList.get(position).getTitle())
+                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, audioList.get(position)
+                        .getTitle())
                 .build());
     }
 
@@ -349,7 +383,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         if (position == audioList.size() - 1) {
             position = 0;
         } else {
-            position+=1;
+            position += 1;
         }
         stopMedia();
         //reset mediaPlayer
@@ -365,7 +399,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
             position = audioList.size() - 1;
         } else {
             //get previous in playlist
-            position-=1;
+            position -= 1;
         }
 
         stopMedia();
@@ -391,7 +425,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         // Create a new Notification
-        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new NotificationCompat.Builder(this)
+        NotificationCompat.Builder notificationBuilder = (NotificationCompat.Builder) new
+                NotificationCompat.Builder(this)
                 .setShowWhen(false)
                 // Set the Notification style
                 .setStyle(new NotificationCompat.MediaStyle()
@@ -413,34 +448,39 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .addAction(notificationAction, "pause", play_pauseAction)
                 .addAction(android.R.drawable.ic_media_next, "next", playbackAction(2));
 
-        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFICATION_ID, notificationBuilder.build());
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).notify
+                (NOTIFICATION_ID, notificationBuilder.build());
     }
 
     private void removeNotification() {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context
+                .NOTIFICATION_SERVICE);
         notificationManager.cancel(NOTIFICATION_ID);
     }
 
     private PendingIntent playbackAction(int actionNumber) {
-        Intent playbackAction = new Intent(this, MediaPlayerService.class);
-        playbackAction.putExtra(MainActivity.INTENT_MEDIA,audioList);
+        Intent playbackAction = new Intent();
         switch (actionNumber) {
             case 0:
                 // Play
                 playbackAction.setAction(ACTION_PLAY);
-                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+                playbackAction.putExtra("todo", 0);
+                return PendingIntent.getBroadcast(this, actionNumber, playbackAction, 0);
             case 1:
                 // Pause
                 playbackAction.setAction(ACTION_PAUSE);
-                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+                playbackAction.putExtra("todo", 1);
+                return PendingIntent.getBroadcast(this, actionNumber, playbackAction, 0);
             case 2:
                 // Next track
                 playbackAction.setAction(ACTION_NEXT);
-                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+                playbackAction.putExtra("todo", 2);
+                return PendingIntent.getBroadcast(this, actionNumber, playbackAction, 0);
             case 3:
                 // Previous track
                 playbackAction.setAction(ACTION_PREVIOUS);
-                return PendingIntent.getService(this, actionNumber, playbackAction, 0);
+                playbackAction.putExtra("todo", 3);
+                return PendingIntent.getBroadcast(this, actionNumber, playbackAction, 0);
             default:
                 break;
         }

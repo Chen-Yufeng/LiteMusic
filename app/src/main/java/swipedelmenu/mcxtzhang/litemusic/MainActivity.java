@@ -47,9 +47,9 @@ public class MainActivity extends AppCompatActivity {
                     String[]{READ_EXTERNAL_STORAGE}, 1);
         }
 
-        loadAudio(new Audio("1", "/sdcard/Download/b.mp3"));
 //        mediaAdapter.notifyItemInserted(audioList.size() - 1);
-        loadAudio(new Audio("2", "/sdcard/Download/testmusic.mp3"));
+        loadAudio(new Audio("2", "/sdcard/Download/b.mp3"));
+        loadAudio(new Audio("1", "/sdcard/Download/b.mp3"));
 //        mediaAdapter.notifyItemInserted(audioList.size() - 1);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);

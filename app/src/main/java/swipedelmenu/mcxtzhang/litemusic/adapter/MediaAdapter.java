@@ -43,7 +43,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.ViewHolder> 
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(mContext).inflate(R.layout.item, parent
+        View view = LayoutInflater.from(mContext).inflate(R.layout.music_item, parent
                 , false);
         final ViewHolder holder = new ViewHolder(view);
         holder.mediaView.setOnClickListener(new View.OnClickListener() {

@@ -14,10 +14,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -28,22 +28,25 @@ import swipedelmenu.mcxtzhang.litemusic.service.MediaPlayerService;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
-public class MainActivity extends AppCompatActivity {
+public class MusicListAddActivity extends AppCompatActivity {
     public final static String INTENT_MEDIA = "MEDIA";
+    public static final String INTENT_RESULT_FOR_ARRAYLIST = "INTENT_RESULT_FOR_ARRAYLIST";
+    public static final String INTENT_RESULT_FOR_NAME = "INTENT_RESULT_FOR_NAME";
     private MediaPlayerService player;
     boolean serviceBound = false;
     ArrayList<Audio> audioList = new ArrayList<>();
-    private final String TAG = "@vir MainActivity";
+    private final String TAG = "@vir MusicListAddActivity";
     MediaAdapter mediaAdapter;
+    AudioSetBroadcastReceiver audioSetBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (ContextCompat.checkSelfPermission(MainActivity.this, READ_EXTERNAL_STORAGE) !=
+        if (ContextCompat.checkSelfPermission(MusicListAddActivity.this, READ_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new
+            ActivityCompat.requestPermissions(MusicListAddActivity.this, new
                     String[]{READ_EXTERNAL_STORAGE}, 1);
         }
 
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setAdapter(mediaAdapter);
 
 
-        AudioSetBroadcastReceiver audioSetBroadcastReceiver = new AudioSetBroadcastReceiver();
+        audioSetBroadcastReceiver = new AudioSetBroadcastReceiver();
         //may be wrong
         IntentFilter intentFilter = new IntentFilter("com.ifchan.litemusic.PLAY");
         registerReceiver(audioSetBroadcastReceiver, intentFilter);
@@ -83,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
             unbindService(serviceConnection);
             player.stopSelf();
         }
+        unregisterReceiver(audioSetBroadcastReceiver);
     }
 
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -91,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             player = binder.getService();
             serviceBound = true;
-            Toast.makeText(MainActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MusicListAddActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -130,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             // TODO: 11/2/17 complete it!
-            Log.d(TAG, "onReceive: intent = " + intent);
             int position = intent.getIntExtra("POSITION", 0);
             playAudio(position);
         }
@@ -139,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_main, menu);
+        inflater.inflate(R.menu.menu_music_platform, menu);
         return true;
     }
 
@@ -177,18 +180,25 @@ public class MainActivity extends AppCompatActivity {
 
         String folderPath = resultData.getDataString().substring(7);
         //TODO handle your request here
-        Log.d(TAG, "onActivityResult: floderPath = " + folderPath.toString());
         initializeAudioNameAndPath(folderPath);
         super.onActivityResult(requestCode, resultCode, resultData);
     }
 
     private void initializeAudioNameAndPath(String path) {
         audioList.add(new Audio(path.substring(path.lastIndexOf('/')+1), path));
-        for (Audio a : audioList) {
-            Log.d(TAG, "initializeAudioNameAndPath: Audio="+a);
-        }
-        Log.d(TAG, "initializeAudioNameAndPath: name = " + path.substring(path.lastIndexOf('/') +
-                1));
         mediaAdapter.notifyItemInserted(audioList.size() - 1);
+    }
+
+    @Override
+    public void onBackPressed() {
+        EditText editTextName = (EditText) findViewById(R.id.music_list_name_edit_text);
+        Intent intentBack = new Intent();
+        intentBack.putExtra(INTENT_RESULT_FOR_ARRAYLIST,audioList);
+        if(!editTextName.getText().equals(""))
+            intentBack.putExtra(INTENT_RESULT_FOR_NAME,editTextName.getText().toString());
+        else
+            intentBack.putExtra(INTENT_RESULT_FOR_NAME,"DefaultName");
+        setResult(RESULT_OK,intentBack);
+        finish();
     }
 }

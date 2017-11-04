@@ -24,7 +24,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import swipedelmenu.mcxtzhang.litemusic.MainActivity;
+import swipedelmenu.mcxtzhang.litemusic.MusicListAddActivity;
 import swipedelmenu.mcxtzhang.litemusic.R;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
 
@@ -66,7 +66,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        audioList = (ArrayList<Audio>) intent.getSerializableExtra(MainActivity.INTENT_MEDIA);
+        audioList = (ArrayList<Audio>) intent.getSerializableExtra(MusicListAddActivity.INTENT_MEDIA);
         position = intent.getIntExtra("position", 0);
         try {
             initMediaSession();
@@ -441,7 +441,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .setSmallIcon(android.R.drawable.stat_sys_headset)
                 // Set Notification content information
 //                .setContentText(audioList.get(position).getArtist())
-                .setContentTitle(audioList.get(position).getTitle())
+                .setContentTitle("Lite Music")
 //                .setContentInfo(activeAudio.getTitle())
                 // Add playback actions
                 .addAction(android.R.drawable.ic_media_previous, "previous", playbackAction(3))

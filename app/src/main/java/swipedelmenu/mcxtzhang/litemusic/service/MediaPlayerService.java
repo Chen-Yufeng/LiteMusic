@@ -58,6 +58,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     //AudioPlayer notification ID
     private static final int NOTIFICATION_ID = 101;
+    boolean isPaused = false;
 
     public enum PlaybackStatus {
         PLAYING,
@@ -103,7 +104,6 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         intentFilter2.addAction(ACTION_NEXT);
         intentFilter2.addAction(ACTION_PREVIOUS);
         registerReceiver(new BroadcastReceiver() {
-            boolean isPaused = false;
 
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -167,10 +167,11 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     }
 
+    // TODO: 11/4/17 complete playing control here
     @Override
     public void onCompletion(MediaPlayer mp) {
         stopMedia();
-        stopSelf();
+//        stopSelf();
     }
 
     @Override
@@ -250,31 +251,45 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
     }
 
-    private void playMedia() {
+    public void pauseOrPlay() {
+        if (isPaused) {
+            playMedia();
+            isPaused = false;
+        } else {
+            pauseMedia();
+            isPaused = true;
+        }
+    }
+
+    public void playMedia() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
         }
     }
 
-    private void stopMedia() {
+    public void stopMedia() {
         if (mediaPlayer == null) return;
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
         }
     }
 
-    private void pauseMedia() {
+    public void pauseMedia() {
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
             resumePosition = mediaPlayer.getCurrentPosition();
         }
     }
 
-    private void resumeMedia() {
+    public void resumeMedia() {
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.seekTo(resumePosition);
             mediaPlayer.start();
         }
+    }
+
+    public void setResumePosition(int resumePosition) {
+        this.resumePosition =resumePosition;
     }
 
     private boolean requestAudioFocus() {
@@ -379,7 +394,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 .build());
     }
 
-    private void skipToNext() {
+    public void skipToNext() {
         if (position == audioList.size() - 1) {
             position = 0;
         } else {
@@ -391,7 +406,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
     }
 
-    private void skipToPrevious() {
+    public void skipToPrevious() {
 
         if (position == 0) {
             //if first in playlist
@@ -485,6 +500,24 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
                 break;
         }
         return null;
+    }
+
+    public int getDurationInMilliseconds() {
+        int time = -1;
+        if (mediaPlayer.isPlaying()) {
+            time = mediaPlayer.getDuration();
+        }
+        return time;
+    }
+
+    public boolean myIsPlaying() {
+        return mediaPlayer.isPlaying();
+    }
+
+    public void mySeekTo(int mesc) {
+        pauseMedia();
+        setResumePosition(mesc);
+        resumeMedia();
     }
 
 }

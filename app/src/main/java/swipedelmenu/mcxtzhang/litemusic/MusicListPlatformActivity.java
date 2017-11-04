@@ -8,20 +8,28 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import swipedelmenu.mcxtzhang.litemusic.adapter.MediaAdapter;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
@@ -42,13 +50,22 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     private final String TAG = "@vir MusicListAddActivity";
     MediaAdapter mediaAdapter;
     EditText editTextName;
+    SeekBar seekBar;
+    Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            int total = player.getDurationInMilliseconds();
+            seekBar.setProgress((int) ((float) (total - msg.what) / total * 10000));
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.music_list);
 
-        if (ContextCompat.checkSelfPermission(MusicListPlatformActivity.this, READ_EXTERNAL_STORAGE) !=
+        if (ContextCompat.checkSelfPermission(MusicListPlatformActivity.this,
+                READ_EXTERNAL_STORAGE) !=
                 PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(MusicListPlatformActivity.this, new
                     String[]{READ_EXTERNAL_STORAGE}, 1);
@@ -57,20 +74,68 @@ public class MusicListPlatformActivity extends AppCompatActivity {
         editTextName = (EditText) findViewById(R.id.music_list_name_edit_text);
         Intent intent = getIntent();
         audioList = (ArrayList<Audio>) intent.getSerializableExtra("audioList");
-        position = intent.getIntExtra("position",0);
+        position = intent.getIntExtra("position", 0);
         editTextName.setText(intent.getStringExtra("name"));
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
-        mediaAdapter = new MediaAdapter(audioList,this);
+        mediaAdapter = new MediaAdapter(audioList, this);
         recyclerView.setAdapter(mediaAdapter);
+
+        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (player.myIsPlaying()) {
+                    int duration = player.getDurationInMilliseconds();
+                    int seek = (int) ((progress / 10000.0) * duration);
+                    player.mySeekTo(seek);
+                }
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        Button buttonPlayAndStop = (Button) findViewById(R.id.button_start);
+        Button buttonSeekToPrevious = (Button) findViewById(R.id.button_seek_to_previous);
+        Button buttonSeekToNext = (Button) findViewById(R.id.button_seek_to_next);
+        buttonPlayAndStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (serviceBound)
+                    player.pauseOrPlay();
+            }
+        });
+        buttonSeekToPrevious.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (serviceBound)
+                    player.skipToPrevious();
+            }
+        });
+        buttonSeekToNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (serviceBound)
+                    player.skipToNext();
+            }
+        });
 
 
         AudioSetBroadcastReceiver audioSetBroadcastReceiver = new AudioSetBroadcastReceiver();
         //may be wrong
         IntentFilter intentFilter = new IntentFilter("com.ifchan.litemusic.PLAY");
         registerReceiver(audioSetBroadcastReceiver, intentFilter);
+
     }
 
     @Override
@@ -100,7 +165,8 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             MediaPlayerService.LocalBinder binder = (MediaPlayerService.LocalBinder) service;
             player = binder.getService();
             serviceBound = true;
-            Toast.makeText(MusicListPlatformActivity.this, "Service Bound", Toast.LENGTH_SHORT).show();
+            Toast.makeText(MusicListPlatformActivity.this, "Service Bound", Toast.LENGTH_SHORT)
+                    .show();
         }
 
         @Override
@@ -110,18 +176,36 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     };
 
     private void playAudio(int position) {
+//        new Thread() {
+//            @Override
+//            public void run() {
+//                MyTimer timer = new MyTimer(player.getDurationInMilliseconds(), 1000);
+//                timer.start();
+//
+//            }
+//        }.start();
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                Message message=new Message();
+                message.what=player.getDurationInMilliseconds();
+                mHandler.sendMessage(message);
+            }
+        }, 0, 1000);
         if (!serviceBound) {
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
             playerIntent.putExtra(INTENT_MEDIA, audioList);
-            playerIntent.putExtra("position",position);
+            playerIntent.putExtra("position", position);
             startService(playerIntent);
             bindService(playerIntent, serviceConnection, Context.BIND_AUTO_CREATE);
         } else {
             //Service is active
             //Send media with BroadcastReceiver
             Intent playNewIntent = new Intent(MediaPlayerService.PLAY_NEW);
-            playNewIntent.putExtra(INTENT_MEDIA,audioList);
-            playNewIntent.putExtra("position",position);
+            playNewIntent.putExtra(INTENT_MEDIA, audioList);
+            playNewIntent.putExtra("position", position);
             sendBroadcast(playNewIntent);
         }
     }
@@ -141,8 +225,36 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             // TODO: 11/2/17 complete it!
             int position = intent.getIntExtra("POSITION", 0);
             playAudio(position);
+
         }
     }
+
+//    class MyTimer extends CountDownTimer {
+//
+//        /**
+//         * @param millisInFuture    The number of millis in the future from the call
+//         *                          to {@link #start()} until the countdown is done and
+//         *                          {@link #onFinish()}
+//         *                          is called.
+//         * @param countDownInterval The interval along the way to receive
+//         *                          {@link #onTick(long)} callbacks.
+//         */
+//        public MyTimer(long millisInFuture, long countDownInterval) {
+//            super(millisInFuture, countDownInterval);
+//        }
+//
+//        @Override
+//        public void onTick(long millisUntilFinished) {
+//            Message message = new Message();
+//            message.what = (int) millisUntilFinished;
+//            mHandler.sendMessage(message);
+//        }
+//
+//        @Override
+//        public void onFinish() {
+//
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -190,21 +302,21 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     }
 
     private void initializeAudioNameAndPath(String path) {
-        audioList.add(new Audio(path.substring(path.lastIndexOf('/')+1), path));
+        audioList.add(new Audio(path.substring(path.lastIndexOf('/') + 1), path));
         mediaAdapter.notifyItemInserted(audioList.size() - 1);
     }
 
     @Override
     public void onBackPressed() {
         Intent intentBack = new Intent();
-        intentBack.putExtra(INTENT_RESULT_FOR_ARRAYLIST,audioList);
-        intentBack.putExtra(INTENT_RESULT_FOR_POSITION,position);
-        if(!editTextName.getText().equals(""))
-            intentBack.putExtra(INTENT_RESULT_FOR_NAME,editTextName.getText().toString());
+        intentBack.putExtra(INTENT_RESULT_FOR_ARRAYLIST, audioList);
+        intentBack.putExtra(INTENT_RESULT_FOR_POSITION, position);
+        if (!editTextName.getText().equals(""))
+            intentBack.putExtra(INTENT_RESULT_FOR_NAME, editTextName.getText().toString());
         else
-            intentBack.putExtra(INTENT_RESULT_FOR_NAME,"DefaultName");
+            intentBack.putExtra(INTENT_RESULT_FOR_NAME, "DefaultName");
         //may be wrong!
-        setResult(RESULT_EDIT_OK,intentBack);
+        setResult(RESULT_EDIT_OK, intentBack);
         finish();
     }
 }

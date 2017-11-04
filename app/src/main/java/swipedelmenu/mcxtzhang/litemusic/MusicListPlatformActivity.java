@@ -24,6 +24,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -51,11 +52,13 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     MediaAdapter mediaAdapter;
     EditText editTextName;
     SeekBar seekBar;
+    ProgressBar mProgressBar;
     Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             int total = player.getDurationInMilliseconds();
-            seekBar.setProgress((int) ((float) (total - msg.what) / total * 10000));
+            int position = player.getCurrentPosition();
+            mProgressBar.setProgress((int) ((position*10000.0)/total));
         }
     };
 
@@ -83,6 +86,7 @@ public class MusicListPlatformActivity extends AppCompatActivity {
         mediaAdapter = new MediaAdapter(audioList, this);
         recyclerView.setAdapter(mediaAdapter);
 
+        mProgressBar = (ProgressBar)findViewById(R.id.progress_bar);
         seekBar = (SeekBar) findViewById(R.id.seek_bar);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -184,16 +188,6 @@ public class MusicListPlatformActivity extends AppCompatActivity {
 //
 //            }
 //        }.start();
-        Timer timer = new Timer();
-        timer.schedule(new TimerTask() {
-
-            @Override
-            public void run() {
-                Message message=new Message();
-                message.what=player.getDurationInMilliseconds();
-                mHandler.sendMessage(message);
-            }
-        }, 0, 1000);
         if (!serviceBound) {
             Intent playerIntent = new Intent(this, MediaPlayerService.class);
             playerIntent.putExtra(INTENT_MEDIA, audioList);
@@ -208,6 +202,16 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             playNewIntent.putExtra("position", position);
             sendBroadcast(playNewIntent);
         }
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                Message message=new Message();
+                message.what = 0;
+                mHandler.sendMessage(message);
+            }
+        }, 1000, 2000);
     }
 
     private void loadAudio(ArrayList<Audio> audioList) {

@@ -64,6 +64,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         PLAYING,
         PAUSED
     }
+    private static boolean getDuration = false;
+    private int time = -1;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -160,6 +162,8 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         }
 
         mediaPlayer.prepareAsync();
+        getDuration = false;
+        time = -1;
     }
 
     @Override
@@ -503,11 +507,19 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public int getDurationInMilliseconds() {
-        int time = -1;
-        if (mediaPlayer.isPlaying()) {
+        if (mediaPlayer.isPlaying() && !getDuration) {
             time = mediaPlayer.getDuration();
+            getDuration = true;
         }
         return time;
+    }
+
+    public int getCurrentPosition() {
+        if (mediaPlayer.isPlaying()) {
+            return mediaPlayer.getCurrentPosition();
+        } else {
+            return resumePosition;
+        }
     }
 
     public boolean myIsPlaying() {

@@ -53,13 +53,12 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     MediaAdapter mediaAdapter;
     EditText editTextName;
     SeekBar seekBar;
-    ProgressBar mProgressBar;
     Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
             int total = player.getDurationInMilliseconds();
             int position = player.getCurrentPosition();
-            mProgressBar.setProgress((int) ((position*10000.0)/total));
+            seekBar.setProgress((int) ((position*10000.0)/total));
             if (position >= (total - 2000)) {
                 switch (playingFlag) {
                     default:
@@ -104,16 +103,10 @@ public class MusicListPlatformActivity extends AppCompatActivity {
         mediaAdapter = new MediaAdapter(audioList, this);
         recyclerView.setAdapter(mediaAdapter);
 
-        mProgressBar = (ProgressBar)findViewById(R.id.progress_bar_p);
         seekBar = (SeekBar) findViewById(R.id.seek_bar_p);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (player.myIsPlaying()) {
-                    int duration = player.getDurationInMilliseconds();
-                    int seek = (int) ((progress / 10000.0) * duration);
-                    player.mySeekTo(seek);
-                }
             }
 
             @Override
@@ -123,7 +116,11 @@ public class MusicListPlatformActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-
+                if (player.myIsPlaying()) {
+                    int duration = player.getDurationInMilliseconds();
+                    int seek = (int) ((seekBar.getProgress() / 10000.0) * duration);
+                    player.mySeekTo(seek);
+                }
             }
         });
 

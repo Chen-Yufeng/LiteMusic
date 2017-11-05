@@ -18,13 +18,6 @@
         android:layout_weight="1">
     </android.support.v7.widget.RecyclerView>
 
-    <ProgressBar
-        android:id="@+id/progress_bar_p"
-        android:max="10000"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
 
     <SeekBar
         android:id="@+id/seek_bar_p"

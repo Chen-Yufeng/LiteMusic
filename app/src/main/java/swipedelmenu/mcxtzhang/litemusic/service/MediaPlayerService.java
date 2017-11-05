@@ -410,6 +410,27 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         initMediaPlayer();
     }
 
+    public void playByList() {
+        if (position < audioList.size() - 1) {
+            position+=1;
+            stopMedia();
+            //reset mediaPlayer
+            mediaPlayer.reset();
+            initMediaPlayer();
+            return;
+        }
+        return;
+    }
+
+    public void playByRandom() {
+        position = (int) (Math.random()*audioList.size());
+        stopMedia();
+        //reset mediaPlayer
+        mediaPlayer.reset();
+        initMediaPlayer();
+    }
+
+
     public void skipToPrevious() {
 
         if (position == 0) {

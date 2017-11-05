@@ -39,7 +39,7 @@ import swipedelmenu.mcxtzhang.litemusic.service.MediaPlayerService;
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 public class MusicListPlatformActivity extends AppCompatActivity {
-    public final static String INTENT_MEDIA = "MEDIA";
+    public static final String INTENT_MEDIA = "MEDIA";
     public static final String INTENT_RESULT_FOR_ARRAYLIST = "INTENT_RESULT_FOR_ARRAYLIST";
     public static final String INTENT_RESULT_FOR_NAME = "INTENT_RESULT_FOR_NAME";
     public static final int RESULT_EDIT_OK = 2017;
@@ -49,6 +49,7 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     private ArrayList<Audio> audioList;
     private int position;
     private final String TAG = "@vir MusicListAddActivity";
+    private int playingFlag = 0;
     MediaAdapter mediaAdapter;
     EditText editTextName;
     SeekBar seekBar;
@@ -59,13 +60,30 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             int total = player.getDurationInMilliseconds();
             int position = player.getCurrentPosition();
             mProgressBar.setProgress((int) ((position*10000.0)/total));
+            if (position >= (total - 2000)) {
+                switch (playingFlag) {
+                    default:
+                    case 0:
+                        if(serviceBound)
+                            player.playByList();
+                        break;
+                    case 1:
+                        if(serviceBound)
+                            player.playByRandom();
+                            break;
+                    case 2:
+                        if(serviceBound)
+                            player.skipToNext();
+                        break;
+                }
+            }
         }
     };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.music_list);
+        setContentView(R.layout.music_list_for_platform);
 
         if (ContextCompat.checkSelfPermission(MusicListPlatformActivity.this,
                 READ_EXTERNAL_STORAGE) !=
@@ -74,20 +92,20 @@ public class MusicListPlatformActivity extends AppCompatActivity {
                     String[]{READ_EXTERNAL_STORAGE}, 1);
         }
 
-        editTextName = (EditText) findViewById(R.id.music_list_name_edit_text);
+        editTextName = (EditText) findViewById(R.id.music_list_name_edit_text_p);
         Intent intent = getIntent();
         audioList = (ArrayList<Audio>) intent.getSerializableExtra("audioList");
         position = intent.getIntExtra("position", 0);
         editTextName.setText(intent.getStringExtra("name"));
 
-        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view_p);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(linearLayoutManager);
         mediaAdapter = new MediaAdapter(audioList, this);
         recyclerView.setAdapter(mediaAdapter);
 
-        mProgressBar = (ProgressBar)findViewById(R.id.progress_bar);
-        seekBar = (SeekBar) findViewById(R.id.seek_bar);
+        mProgressBar = (ProgressBar)findViewById(R.id.progress_bar_p);
+        seekBar = (SeekBar) findViewById(R.id.seek_bar_p);
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -109,9 +127,9 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             }
         });
 
-        Button buttonPlayAndStop = (Button) findViewById(R.id.button_start);
-        Button buttonSeekToPrevious = (Button) findViewById(R.id.button_seek_to_previous);
-        Button buttonSeekToNext = (Button) findViewById(R.id.button_seek_to_next);
+        Button buttonPlayAndStop = (Button) findViewById(R.id.button_start_p);
+        Button buttonSeekToPrevious = (Button) findViewById(R.id.button_seek_to_previous_p);
+        Button buttonSeekToNext = (Button) findViewById(R.id.button_seek_to_next_p);
         buttonPlayAndStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -202,6 +220,10 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             playNewIntent.putExtra("position", position);
             sendBroadcast(playNewIntent);
         }
+        startTimer();
+    }
+
+    private void startTimer() {
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
 
@@ -263,7 +285,7 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_music_platform, menu);
+        inflater.inflate(R.menu.menu_music_platform_with_control, menu);
         return true;
     }
 
@@ -271,10 +293,19 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
         switch (item.getItemId()) {
-            case R.id.addFile:
+            case R.id.addFile_ctl:
                 performFileSearch();
                 return true;
-            case R.id.addFolder:
+            case R.id.addFolder_ctl:
+                return true;
+            case R.id.normal:
+                playingFlag = 0;
+                return true;
+            case R.id.circle:
+                playingFlag = 2;
+                return true;
+            case R.id.random:
+                playingFlag = 1;
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+      xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/addFolder_ctl"
+        android:title="Add Folder"/>
+
+    <item
+        android:id="@+id/addFile_ctl"
+        android:title="Add File"/>
+
+    <item
+        android:id="@+id/normal"
+        android:title="Normal"/>
+
+    <item
+        android:id="@+id/circle"
+        android:title="Circle"/>
+
+    <item
+        android:id="@+id/random"
+        android:title="Random"/>
+
+</menu>

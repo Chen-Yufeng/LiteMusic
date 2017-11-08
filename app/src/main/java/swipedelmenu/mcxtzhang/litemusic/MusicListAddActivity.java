@@ -51,8 +51,8 @@ public class MusicListAddActivity extends AppCompatActivity {
         }
 
 //        mediaAdapter.notifyItemInserted(audioList.size() - 1);
-        loadAudio(new Audio("2", "/sdcard/Download/b.mp3"));
-        loadAudio(new Audio("1", "/sdcard/Download/b.mp3"));
+//        loadAudio(new Audio("2", "/sdcard/Download/b.mp3"));
+//        loadAudio(new Audio("1", "/sdcard/Download/b.mp3"));
 //        mediaAdapter.notifyItemInserted(audioList.size() - 1);
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
@@ -194,7 +194,7 @@ public class MusicListAddActivity extends AppCompatActivity {
         EditText editTextName = (EditText) findViewById(R.id.music_list_name_edit_text);
         Intent intentBack = new Intent();
         intentBack.putExtra(INTENT_RESULT_FOR_ARRAYLIST,audioList);
-        if(!editTextName.getText().equals(""))
+        if(!editTextName.getText().toString().equals(""))
             intentBack.putExtra(INTENT_RESULT_FOR_NAME,editTextName.getText().toString());
         else
             intentBack.putExtra(INTENT_RESULT_FOR_NAME,"DefaultName");

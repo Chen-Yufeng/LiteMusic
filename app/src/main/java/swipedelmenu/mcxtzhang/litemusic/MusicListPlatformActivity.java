@@ -1,5 +1,7 @@
 package swipedelmenu.mcxtzhang.litemusic;
 
+import android.app.Dialog;
+import android.app.DialogFragment;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -8,23 +10,24 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ProgressBar;
+import android.widget.NumberPicker;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -33,12 +36,14 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import swipedelmenu.mcxtzhang.litemusic.adapter.MediaAdapter;
+import swipedelmenu.mcxtzhang.litemusic.dialog.TimerDialog;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
 import swipedelmenu.mcxtzhang.litemusic.service.MediaPlayerService;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
-public class MusicListPlatformActivity extends AppCompatActivity {
+public class MusicListPlatformActivity extends AppCompatActivity
+        implements TimerDialog.TimerListener, NumberPicker.OnValueChangeListener{
     public static final String INTENT_MEDIA = "MEDIA";
     public static final String INTENT_RESULT_FOR_ARRAYLIST = "INTENT_RESULT_FOR_ARRAYLIST";
     public static final String INTENT_RESULT_FOR_NAME = "INTENT_RESULT_FOR_NAME";
@@ -48,11 +53,12 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     private boolean serviceBound = false;
     private ArrayList<Audio> audioList;
     private int position;
-    private final String TAG = "@vir MusicListAddActivity";
+    private final String TAG = "@MusicListAddActivity";
     private int playingFlag = 0;
     MediaAdapter mediaAdapter;
     EditText editTextName;
     SeekBar seekBar;
+    Context mContext;
     Handler mHandler = new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
@@ -83,6 +89,8 @@ public class MusicListPlatformActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.music_list_for_platform);
+        mContext = this;
+
 
         if (ContextCompat.checkSelfPermission(MusicListPlatformActivity.this,
                 READ_EXTERNAL_STORAGE) !=
@@ -241,6 +249,8 @@ public class MusicListPlatformActivity extends AppCompatActivity {
         this.audioList.add(audio);
     }
 
+
+
     class AudioSetBroadcastReceiver extends BroadcastReceiver {
 
         @Override
@@ -286,6 +296,7 @@ public class MusicListPlatformActivity extends AppCompatActivity {
         return true;
     }
 
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle item selection
@@ -294,6 +305,10 @@ public class MusicListPlatformActivity extends AppCompatActivity {
                 performFileSearch();
                 return true;
             case R.id.addFolder_ctl:
+                return true;
+            case R.id.timer:
+                showNoticeDialog();
+//                show();
                 return true;
             case R.id.normal:
                 playingFlag = 0;
@@ -307,6 +322,55 @@ public class MusicListPlatformActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
+        Log.d(TAG, "onValueChange: newVal="+newVal);
+    }
+
+    public void show()
+    {
+
+        final Dialog d = new Dialog(this);
+        d.setTitle("NumberPicker");
+        d.setContentView(R.layout.timer);
+        Button b1 = (Button) d.findViewById(R.id.button1);
+        Button b2 = (Button) d.findViewById(R.id.button2);
+        final NumberPicker np = (NumberPicker) d.findViewById(R.id.numberPicker1);
+        np.setMaxValue(120);
+        np.setMinValue(0);
+        np.setWrapSelectorWheel(false);
+        np.setOnValueChangedListener(this);
+        b1.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+
+                d.dismiss();
+            }
+        });
+        b2.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View v) {
+                d.dismiss();
+            }
+        });
+        d.show();
+
+
+    }
+
+    public void showNoticeDialog() {
+        // Create an instance of the dialog fragment and show it
+        DialogFragment dialog = new TimerDialog();
+        dialog.show(getFragmentManager(), "TimerDialog");
+    }
+
+    @Override
+    public void onDialogPositiveClick(int time) {
+        Log.d("@#$", "onDialogPositiveClick: time="+time);
     }
 
     private static final int READ_REQUEST_CODE = 42;

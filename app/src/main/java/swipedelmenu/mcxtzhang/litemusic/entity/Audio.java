@@ -1,8 +1,5 @@
 package swipedelmenu.mcxtzhang.litemusic.entity;
 
-import android.net.Uri;
-
-import java.io.OutputStream;
 import java.io.Serializable;
 
 public class Audio implements Serializable {

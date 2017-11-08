@@ -32,24 +32,23 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener, MediaPlayer
                 .OnSeekCompleteListener,
         MediaPlayer.OnInfoListener, MediaPlayer.OnBufferingUpdateListener,
-
         AudioManager.OnAudioFocusChangeListener {
 
-    private final IBinder iBinder = new LocalBinder();
-    private MediaPlayer mediaPlayer;
-    //path to the audio file
-    private int resumePosition;
-    private AudioManager audioManager;
     private final String TAG = "@vir MediaPlayerService";
-    private ArrayList<Audio> audioList;
-    private int position;
-    public final static String PLAY_NEW = "PLAY_NEW";
     public static final String ACTION_PLAY = "com.valdioveliu.valdio.audioplayer.ACTION_PLAY";
     public static final String ACTION_PAUSE = "com.valdioveliu.valdio.audioplayer.ACTION_PAUSE";
     public static final String ACTION_PREVIOUS = "com.valdioveliu.valdio.audioplayer" +
             ".ACTION_PREVIOUS";
     public static final String ACTION_NEXT = "com.valdioveliu.valdio.audioplayer.ACTION_NEXT";
     public static final String ACTION_STOP = "com.valdioveliu.valdio.audioplayer.ACTION_STOP";
+    public final static String PLAY_NEW = "PLAY_NEW";
+    private final IBinder iBinder = new LocalBinder();
+    private MediaPlayer mediaPlayer;
+    private AudioManager audioManager;
+    private ArrayList<Audio> audioList;
+    private int position;
+    //path to the audio file
+    private int resumePosition;
 
     //MediaSession
     private MediaSessionManager mediaSessionManager;
@@ -64,12 +63,14 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         PLAYING,
         PAUSED
     }
+
     private static boolean getDuration = false;
     private int time = -1;
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        audioList = (ArrayList<Audio>) intent.getSerializableExtra(MusicListAddActivity.INTENT_MEDIA);
+        audioList = (ArrayList<Audio>) intent.getSerializableExtra(MusicListAddActivity
+                .INTENT_MEDIA);
         position = intent.getIntExtra("position", 0);
         try {
             initMediaSession();
@@ -77,7 +78,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        if (requestAudioFocus() == false) {
+        if (!requestAudioFocus()) {
             stopSelf();
         }
         if (audioList != null) {
@@ -293,7 +294,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
     }
 
     public void setResumePosition(int resumePosition) {
-        this.resumePosition =resumePosition;
+        this.resumePosition = resumePosition;
     }
 
     private boolean requestAudioFocus() {
@@ -307,8 +308,7 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     private boolean removeAudioFocus() {
         //use newer later
-        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED ==
-                audioManager.abandonAudioFocus(this);
+        return AudioManager.AUDIOFOCUS_REQUEST_GRANTED == audioManager.abandonAudioFocus(this);
     }
 
     class ServiceBroadCastReceiver extends BroadcastReceiver {
@@ -412,18 +412,17 @@ public class MediaPlayerService extends Service implements MediaPlayer.OnComplet
 
     public void playByList() {
         if (position < audioList.size() - 1) {
-            position+=1;
+            position += 1;
             stopMedia();
             //reset mediaPlayer
             mediaPlayer.reset();
             initMediaPlayer();
             return;
         }
-        return;
     }
 
     public void playByRandom() {
-        position = (int) (Math.random()*audioList.size());
+        position = (int) (Math.random() * audioList.size());
         stopMedia();
         //reset mediaPlayer
         mediaPlayer.reset();

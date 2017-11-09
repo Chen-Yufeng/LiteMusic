@@ -14,8 +14,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MusicListAddActivity"></activity>
-        <activity android:name=".MusicListPlatformActivity"></activity>
+        <activity android:name=".MusicListAddActivity"/>
+        <activity android:name=".MusicListPlatformActivity"/>
 
         <service android:name=".service.MediaPlayerService"/>
 
@@ -25,6 +25,11 @@
 
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".SwipedPagesActivity"
+            android:label="@string/title_activity_swiped_pages"
+            android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>
 

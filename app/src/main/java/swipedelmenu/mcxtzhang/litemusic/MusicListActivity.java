@@ -8,24 +8,29 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import swipedelmenu.mcxtzhang.litemusic.adapter.MusicListAdapter;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
+import swipedelmenu.mcxtzhang.litemusic.entity.LrcLine;
+import swipedelmenu.mcxtzhang.litemusic.helper.LrcHelper;
 
 public class MusicListActivity extends AppCompatActivity {
     private MusicListAdapter musicListAdapter;
     private ArrayList<ArrayList<Audio>> arrayListofAudioList;
     private ArrayList<String> listName;
+    public static final String TAG = "@$";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //test
         arrayListofAudioList = new ArrayList<>();
         listName = new ArrayList<>();
         setContentView(R.layout.activity_music_list);
@@ -49,6 +54,13 @@ public class MusicListActivity extends AppCompatActivity {
                 MusicListActivity.this.startActivityForResult(intentToMusicListPlatform,233);
             }
         },new IntentFilter(MusicListAdapter.INTENT_SHOW_PLATFORM_POSITION));
+//        test
+//        LrcHelper lrcHelper = new LrcHelper();
+//        List<LrcLine> list = lrcHelper.getLrcList(new File("/sdcard/Download/a.lrc"));
+//        for (LrcLine l : list) {
+//            Log.d(TAG, l.getMillisecond()+" "+l.getLrcText());
+//        }
+//        test
     }
 
     @Override

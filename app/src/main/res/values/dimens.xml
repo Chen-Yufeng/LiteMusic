@@ -4,4 +4,7 @@
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="appbar_padding_top">8dp</dimen>
+    <dimen name="lyric_hieght">30dp</dimen>
+    <dimen name="lrc_hightlight_size">25sp</dimen>
+    <dimen name="lrc_normal_size">15sp</dimen>
 </resources>

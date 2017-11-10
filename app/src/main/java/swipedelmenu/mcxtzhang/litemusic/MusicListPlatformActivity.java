@@ -163,6 +163,15 @@ public class MusicListPlatformActivity extends AppCompatActivity
         IntentFilter intentFilter = new IntentFilter("com.ifchan.litemusic.PLAY");
         registerReceiver(audioSetBroadcastReceiver, intentFilter);
 
+        View viewToPager = findViewById(R.id.view_to_pager);
+        viewToPager.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intentToPager = new Intent(MusicListPlatformActivity.this,
+                        SwipedPagesActivity.class);
+                startActivity(intentToPager);
+            }
+        });
     }
 
     @Override

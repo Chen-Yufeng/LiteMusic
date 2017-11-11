@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,10 +92,13 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
     }
 
     private void drawMutiLineText(Canvas canvas) {
-        Log.d(TAG, "drawMutiLineText: ");
 //        currentline
         currentLine = 0;
         List<LrcLine> lyricBeans = new ArrayList<>();
+        if (mLrcLines == null) {
+            Log.e(TAG, "drawMutiLineText: ISNULL");
+        }
+        Log.d(TAG, "drawMutiLineText: size="+mLrcLines.size());
         LrcLine temp = mLrcLines.get(currentLine);
         if (mLrcLines.size() > 5) {
             if (position > mLrcLines.get(mLrcLines.size() - 3).getMillisecond()) {

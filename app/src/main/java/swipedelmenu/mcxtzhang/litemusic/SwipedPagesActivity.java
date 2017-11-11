@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,10 +75,15 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
         pager.setCurrentItem(1);
 
         registerReceiver(new BroadcastReceiver() {
-//            boolean bl = false;
+            boolean bl = false;
             @Override
             public void onReceive(Context context, Intent intent) {
                 position = intent.getIntExtra(getResources().getString(R.string.loop_position),0);
+//                if (bl) {
+//                    lrcTextView.setPosition(position);
+//                } else {
+//                    bl = true;
+//                }
 //                viewContainer.remove(1);
 //                LayoutInflater layoutInflater = getLayoutInflater().from(SwipedPagesActivity.this);
 //                View page2 = layoutInflater.inflate(R.layout.page2, null);

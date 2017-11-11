@@ -15,7 +15,6 @@
 
     </Toolbar>
 
-
     <android.support.v4.view.ViewPager
         android:id="@+id/view_pager"
         android:layout_width="wrap_content"

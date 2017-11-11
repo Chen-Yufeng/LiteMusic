@@ -1,5 +1,9 @@
 package swipedelmenu.mcxtzhang.litemusic;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -12,19 +16,32 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SwipedPagesActivity extends AppCompatActivity implements ViewPager.OnPageChangeListener{
+import swipedelmenu.mcxtzhang.litemusic.entity.LrcLine;
+import swipedelmenu.mcxtzhang.litemusic.lrctextview.LrcTextView;
+
+public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
+        .OnPageChangeListener {
     private final String TAG = "@vir SwipedPages";
     private List<View> viewContainer;
     ViewPager pager;
+    ArrayList<LrcLine> lrcList;
+    long position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_swiped_pages);
+        Intent intent_receive = getIntent();
+        lrcList = (ArrayList<LrcLine>) intent_receive.getSerializableExtra(getResources()
+                .getString(R.string.intent_lrclist));
+        position = intent_receive.getIntExtra(getResources().getString(R.string.player_position)
+                ,0);
         LayoutInflater layoutInflater = getLayoutInflater().from(SwipedPagesActivity.this);
         View page1 = layoutInflater.inflate(R.layout.page1, null);
         View page2 = layoutInflater.inflate(R.layout.page2, null);
         View page3 = layoutInflater.inflate(R.layout.page3, null);
+        final LrcTextView lrcTextView = page2.findViewById(R.id.lrc_text_view);
+        lrcTextView.setListAndPosition(lrcList,position);
         viewContainer = new ArrayList<>();
         viewContainer.add(page1);
         viewContainer.add(page2);
@@ -56,17 +73,29 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager.
         });
         pager.setCurrentItem(1);
 
-
+        registerReceiver(new BroadcastReceiver() {
+            boolean bl = false;
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                position = intent.getIntExtra(getResources().getString(R.string.loop_position),0);
+                lrcTextView.setListAndPosition(lrcList,position);
+//                if (bl) {
+//                    lrcTextView.invalidate();
+//                } else {
+//                    bl = true;
+//                }
+            }
+        },new IntentFilter(getResources().getString(R.string.loop_broadcast_to_pager)));
     }
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
         if (positionOffset == 0.0) {
-            Log.d(TAG, "onPageScrolled: positionOffset="+positionOffset);
+            Log.d(TAG, "onPageScrolled: positionOffset=" + positionOffset);
             if (position == 0) {
                 //动画会跳动
                 pager.setCurrentItem(1);
-            } else if(position == 2){
+            } else if (position == 2) {
                 pager.setCurrentItem(1);
             }
         }

@@ -15,7 +15,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,6 +30,7 @@ import android.widget.NumberPicker;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -38,12 +38,14 @@ import java.util.TimerTask;
 import swipedelmenu.mcxtzhang.litemusic.adapter.MediaAdapter;
 import swipedelmenu.mcxtzhang.litemusic.dialog.TimerDialog;
 import swipedelmenu.mcxtzhang.litemusic.entity.Audio;
+import swipedelmenu.mcxtzhang.litemusic.entity.LrcLine;
+import swipedelmenu.mcxtzhang.litemusic.helper.LrcHelper;
 import swipedelmenu.mcxtzhang.litemusic.service.MediaPlayerService;
 
 import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 public class MusicListPlatformActivity extends AppCompatActivity
-        implements TimerDialog.TimerListener, NumberPicker.OnValueChangeListener{
+        implements TimerDialog.TimerListener, NumberPicker.OnValueChangeListener {
     public static final String INTENT_MEDIA = "MEDIA";
     public static final String INTENT_RESULT_FOR_ARRAYLIST = "INTENT_RESULT_FOR_ARRAYLIST";
     public static final String INTENT_RESULT_FOR_NAME = "INTENT_RESULT_FOR_NAME";
@@ -52,6 +54,7 @@ public class MusicListPlatformActivity extends AppCompatActivity
     private MediaPlayerService player;
     private boolean serviceBound = false;
     private ArrayList<Audio> audioList;
+    private ArrayList<LrcLine> mLrcLineList;
     private int position;
     private final String TAG = "@MusicListAddActivity";
     private int playingFlag = 0;
@@ -64,20 +67,20 @@ public class MusicListPlatformActivity extends AppCompatActivity
         public void handleMessage(Message msg) {
             int total = player.getDurationInMilliseconds();
             int position = player.getCurrentPosition();
-            seekBar.setProgress((int) ((position*10000.0)/total));
+            seekBar.setProgress((int) ((position * 10000.0) / total));
             if (position >= (total - 2000)) {
                 switch (playingFlag) {
                     default:
                     case 0:
-                        if(serviceBound)
+                        if (serviceBound)
                             player.playByList();
                         break;
                     case 1:
-                        if(serviceBound)
+                        if (serviceBound)
                             player.playByRandom();
-                            break;
+                        break;
                     case 2:
-                        if(serviceBound)
+                        if (serviceBound)
                             player.skipToNext();
                         break;
                 }
@@ -102,6 +105,8 @@ public class MusicListPlatformActivity extends AppCompatActivity
         editTextName = (EditText) findViewById(R.id.music_list_name_edit_text_p);
         Intent intent = getIntent();
         audioList = (ArrayList<Audio>) intent.getSerializableExtra("audioList");
+        //test
+        audioList.add(new Audio("b.mp3","/sdcard/Download/b.mp3"));
         position = intent.getIntExtra("position", 0);
         editTextName.setText(intent.getStringExtra("name"));
 
@@ -167,9 +172,15 @@ public class MusicListPlatformActivity extends AppCompatActivity
         viewToPager.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intentToPager = new Intent(MusicListPlatformActivity.this,
-                        SwipedPagesActivity.class);
-                startActivity(intentToPager);
+                if(player.myIsPlaying()) {
+                    Intent intentToPager = new Intent(MusicListPlatformActivity.this,
+                            SwipedPagesActivity.class);
+                    intentToPager.putExtra(getResources().getString(R.string.intent_lrclist),
+                            mLrcLineList);
+                    intentToPager.putExtra(getResources().getString(R.string.player_position),
+                            player.getCurrentPosition());
+                    startActivity(intentToPager);
+                }
             }
         });
     }
@@ -235,6 +246,14 @@ public class MusicListPlatformActivity extends AppCompatActivity
             sendBroadcast(playNewIntent);
         }
         startTimer();
+        LrcHelper lrcHelper = new LrcHelper();
+        Audio audio = audioList.get(position);
+        String path = audio.getPath();
+        String title = audio.getTitle();
+        ///sdcard/Download/b.mp3
+        String lrcPath = path.substring(0, path.lastIndexOf('/') + 1) + title
+                .substring(0, title.lastIndexOf('.') + 1) + "lrc";
+        mLrcLineList = lrcHelper.getLrcList(new File(lrcPath));
     }
 
     private void startTimer() {
@@ -243,9 +262,14 @@ public class MusicListPlatformActivity extends AppCompatActivity
 
             @Override
             public void run() {
-                Message message=new Message();
+                Message message = new Message();
                 message.what = 0;
                 mHandler.sendMessage(message);
+                Intent intentToPager = new Intent(getResources().getString(R.string
+                        .loop_broadcast_to_pager));
+                intentToPager.putExtra(getResources().getString(R.string.loop_position),player
+                        .getCurrentPosition());
+                sendBroadcast(intentToPager);
             }
         }, 1000, 2000);
     }
@@ -257,7 +281,6 @@ public class MusicListPlatformActivity extends AppCompatActivity
     private void loadAudio(Audio audio) {
         this.audioList.add(audio);
     }
-
 
 
     class AudioSetBroadcastReceiver extends BroadcastReceiver {
@@ -335,11 +358,10 @@ public class MusicListPlatformActivity extends AppCompatActivity
 
     @Override
     public void onValueChange(NumberPicker picker, int oldVal, int newVal) {
-        Log.d(TAG, "onValueChange: newVal="+newVal);
+        Log.d(TAG, "onValueChange: newVal=" + newVal);
     }
 
-    public void show()
-    {
+    public void show() {
 
         final Dialog d = new Dialog(this);
         d.setTitle("NumberPicker");
@@ -351,16 +373,14 @@ public class MusicListPlatformActivity extends AppCompatActivity
         np.setMinValue(0);
         np.setWrapSelectorWheel(false);
         np.setOnValueChangedListener(this);
-        b1.setOnClickListener(new View.OnClickListener()
-        {
+        b1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 d.dismiss();
             }
         });
-        b2.setOnClickListener(new View.OnClickListener()
-        {
+        b2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 d.dismiss();
@@ -379,7 +399,7 @@ public class MusicListPlatformActivity extends AppCompatActivity
 
     @Override
     public void onDialogPositiveClick(int time) {
-        Log.d("@#$", "onDialogPositiveClick: time="+time);
+        Log.d("@#$", "onDialogPositiveClick: time=" + time);
     }
 
     private static final int READ_REQUEST_CODE = 42;

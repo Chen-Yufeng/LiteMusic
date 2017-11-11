@@ -1,13 +1,12 @@
 package swipedelmenu.mcxtzhang.litemusic.lrctextview;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.widget.TextView;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,14 +19,16 @@ import swipedelmenu.mcxtzhang.litemusic.entity.LrcLine;
  */
 
 public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
+    private final String TAG = "@vir LrcTextView";
     private float hightlightSize;
     private float normalSize;
     private int hightLightColor;
     private int normalColor;
     private int halfViewW, halfViewH;
     private Paint paint;
-    private List<LrcLine> mLrcLines = new ArrayList<>();
-    private int currentLine;
+    private List<LrcLine> mLrcLines;
+    private long position;
+    private int currentLine = 0;
     private int lyricHeight;
 
     public LrcTextView(Context context) {
@@ -55,10 +56,12 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
         paint.setAntiAlias(true);
         paint.setTextSize(hightlightSize);
         paint.setColor(hightLightColor);
+    }
 
-        for (int i = 0; i < 100; i++) {
-            mLrcLines.add(new LrcLine(i, Integer.toString(i)));
-        }
+    public void setListAndPosition(ArrayList<LrcLine> lrcList, long position) {
+        Log.d(TAG, "setListAndPosition: position="+position);
+        mLrcLines = lrcList;
+        this.position = position;
     }
 
     @Override
@@ -83,21 +86,61 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
     }
 
     private void drawMutiLineText(Canvas canvas) {
-        currentLine = 5;
+        Log.d(TAG, "drawMutiLineText: ");
+//        currentline
+        currentLine = 0;
         List<LrcLine> lyricBeans = new ArrayList<>();
-        lyricBeans.add(mLrcLines.get(0));
-        lyricBeans.add(mLrcLines.get(1));
-        lyricBeans.add(mLrcLines.get(2));
-        lyricBeans.add(mLrcLines.get(3));
-        lyricBeans.add(mLrcLines.get(4));
+        LrcLine temp = mLrcLines.get(currentLine);
+        if (mLrcLines.size() > 5) {
+            if (position > mLrcLines.get(mLrcLines.size() - 3).getMillisecond()) {
+                for (int i = mLrcLines.size() - 5; i <= mLrcLines.size() - 1; i++) {
+                    lyricBeans.add(mLrcLines.get(i));
+                }
+                currentLine = 2;
+                while (position > mLrcLines.get(mLrcLines.size() + currentLine - 6)
+                        .getMillisecond()) {
+                    currentLine++;
+                }
+            } else {
+                while (position >= temp.getMillisecond()) {
+                    temp = mLrcLines.get(++currentLine);
+                }
+                currentLine--;
+                if (currentLine == 0) {
+                    for (int i = 0; i < 5; i++) {
+                        lyricBeans.add(mLrcLines.get(i));
+                    }
+                } else {
+                    lyricBeans.add(mLrcLines.get(currentLine - 1));
+                    lyricBeans.add(mLrcLines.get(currentLine));
+                    lyricBeans.add(mLrcLines.get(currentLine + 1));
+                    lyricBeans.add(mLrcLines.get(currentLine + 2));
+                    lyricBeans.add(mLrcLines.get(currentLine + 3));
+                }
+                if (currentLine >= 5) {
+                    currentLine = 2;
+                }
+            }
+        } else {
+            for(int i = 0;i < mLrcLines.size();i++) {
+                lyricBeans.add(mLrcLines.get(i));
+                if (position > mLrcLines.get(i).getMillisecond()) {
+                    currentLine = i;
+                }
+            }
+        }
+
+
+
         //获取高亮行Y 的位置
         Rect bounds = new Rect();
         //计算text的宽和高
-        paint.getTextBounds(lyricBeans.get(0).getLrcText(), 0, lyricBeans.get(0).getLrcText().length(),
-                bounds);
+        paint.getTextBounds(lyricBeans.get(0).getLrcText(), 0, lyricBeans.get(0).getLrcText()
+                .length(), bounds);
         // int halfTextW=bounds.width()/2;
         int halfTextH = bounds.height() / 2;
-        int centerY = halfTextH + halfViewH;
+//        int centerY = halfTextH + halfViewH;
+        int centerY = halfViewH - halfTextH;
 
         for (int i = 0; i < lyricBeans.size(); i++) {
             if (i == currentLine) {
@@ -109,7 +152,7 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
             }
 
             // 绘制的Y位置=centerY+(当前行数-高亮行)*行高
-            int drawY = (int) (centerY + (i - currentLine) * lyricHeight);
+            int drawY = centerY + (i - currentLine) * lyricHeight;
             drawHorizontal(canvas, lyricBeans.get(i).getLrcText(), drawY);
         }
 

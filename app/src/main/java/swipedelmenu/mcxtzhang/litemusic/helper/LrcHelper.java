@@ -1,17 +1,12 @@
 package swipedelmenu.mcxtzhang.litemusic.helper;
 
-import android.util.Log;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import swipedelmenu.mcxtzhang.litemusic.entity.LrcLine;
-
-import static swipedelmenu.mcxtzhang.litemusic.MusicListActivity.TAG;
 
 /**
  * Created by daily on 11/8/17.
@@ -20,9 +15,9 @@ import static swipedelmenu.mcxtzhang.litemusic.MusicListActivity.TAG;
 public class LrcHelper {
     private BufferedReader mBufferedReader;
     private String title = "", artist = "", album = "";
-    private List<LrcLine> lrcList = new ArrayList<>();
+    private ArrayList<LrcLine> lrcList = new ArrayList<>();
 
-    public List<LrcLine> getLrcList(File lrcFile) {
+    public ArrayList<LrcLine> getLrcList(File lrcFile) {
         String line;
         try {
             mBufferedReader = new BufferedReader(new FileReader(lrcFile));

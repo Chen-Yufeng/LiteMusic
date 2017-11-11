@@ -12,7 +12,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +31,8 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
     ViewPager pager;
     ArrayList<LrcLine> lrcList;
     long position;
+    private ImageButton mImageButton;
+    private ImageView mImageView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +48,41 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
         View page2 = layoutInflater.inflate(R.layout.page2, null);
         View page3 = layoutInflater.inflate(R.layout.page3, null);
         final LrcTextView lrcTextView = page2.findViewById(R.id.lrc_text_view);
+        lrcTextView.setVisibility(View.INVISIBLE);
+        lrcTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lrcTextView.getVisibility() == View.INVISIBLE) {
+                    lrcTextView.setVisibility(View.VISIBLE);
+                    mImageView.setVisibility(View.GONE);
+                    mImageView.clearAnimation();
+                    mImageButton.setVisibility(View.INVISIBLE);
+                } else {
+                    lrcTextView.setVisibility(View.INVISIBLE);
+                    mImageView.setVisibility(View.VISIBLE);
+                    mImageButton.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+        mImageView = page2.findViewById(R.id.pointer);
+        mImageView.setVisibility(View.VISIBLE);
+        mImageButton = page2.findViewById(R.id.disk);
+        mImageButton.setVisibility(View.VISIBLE);
+        mImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (lrcTextView.getVisibility() == View.INVISIBLE) {
+                    lrcTextView.setVisibility(View.VISIBLE);
+                    mImageView.setVisibility(View.GONE);
+                    mImageView.clearAnimation();
+                    mImageButton.setVisibility(View.INVISIBLE);
+                } else {
+                    lrcTextView.setVisibility(View.INVISIBLE);
+                    mImageView.setVisibility(View.VISIBLE);
+                    mImageButton.setVisibility(View.VISIBLE);
+                }
+            }
+        });
         lrcTextView.setListAndPosition(lrcList,position);
         viewContainer = new ArrayList<>();
         viewContainer.add(page1);
@@ -115,6 +156,17 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
 
     @Override
     public void onPageScrollStateChanged(int state) {
+        Animation animation = AnimationUtils.loadAnimation(SwipedPagesActivity.this,R.anim
+                .pointer_anim);
+        Animation animationReset = AnimationUtils.loadAnimation(SwipedPagesActivity.this,R.anim
+                .pointer_anim_reset);
+        animation.setFillAfter(true);
+        animationReset.setFillAfter(true);
+        if (state == ViewPager.SCROLL_STATE_DRAGGING) {
+            mImageView.startAnimation(animation);
+        } else if (state == ViewPager.SCROLL_STATE_IDLE) {
+            mImageView.startAnimation(animationReset);
+        }
 
     }
 }

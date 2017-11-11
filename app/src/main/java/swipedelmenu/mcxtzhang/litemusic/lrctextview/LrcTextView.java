@@ -27,7 +27,7 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
     private int normalColor;
     private int halfViewW, halfViewH;
     private Paint paint;
-    private List<LrcLine> mLrcLines;
+    private static List<LrcLine> mLrcLines;
     private long position;
     private int currentLine = 0;
     private int lyricHeight;

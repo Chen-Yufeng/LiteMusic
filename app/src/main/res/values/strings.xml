@@ -10,4 +10,5 @@
     <string name="loop_broadcast_to_pager">LOOP_BROADCAST_TO_PAGER</string>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
+    <string name="intent_audio_info">INTETN_AUDIO_INFO</string>
 </resources>

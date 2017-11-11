@@ -37,7 +37,7 @@
             android:text="Prev"/>
 
         <View
-            android:id="@+id/view_to_pager"
+            android:id="@+id/view_to_pager_1"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"/>
@@ -50,6 +50,7 @@
             android:text="Pause"/>
 
         <View
+            android:id="@+id/view_to_pager_2"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"/>

@@ -54,4 +54,16 @@ public class LrcHelper {
         }
         return lrcList;
     }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public String getArtist() {
+        return artist;
+    }
+
+    public String getAlbum() {
+        return album;
+    }
 }

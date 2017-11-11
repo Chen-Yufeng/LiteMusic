@@ -17,6 +17,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toolbar;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +34,22 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
     long position;
     private ImageButton mImageButton;
     private ImageView mImageView;
+    private AudioInfo mAudioInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_swiped_pages);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.tool_bar);
         Intent intent_receive = getIntent();
         lrcList = (ArrayList<LrcLine>) intent_receive.getSerializableExtra(getResources()
                 .getString(R.string.intent_lrclist));
         position = intent_receive.getIntExtra(getResources().getString(R.string.player_position)
                 ,0);
+        mAudioInfo = (AudioInfo) intent_receive.getSerializableExtra(getResources().getString(R.string
+                .intent_audio_info));
+        toolbar.setTitle(mAudioInfo.getTitle());
+        toolbar.setSubtitle(mAudioInfo.getName()+" "+mAudioInfo.getAlbum());
         LayoutInflater layoutInflater = getLayoutInflater().from(SwipedPagesActivity.this);
         View page1 = layoutInflater.inflate(R.layout.page1, null);
         View page2 = layoutInflater.inflate(R.layout.page2, null);

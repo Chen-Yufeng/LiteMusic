@@ -31,6 +31,7 @@ import android.widget.SeekBar;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -55,6 +56,7 @@ public class MusicListPlatformActivity extends AppCompatActivity
     private boolean serviceBound = false;
     private ArrayList<Audio> audioList;
     private ArrayList<LrcLine> mLrcLineList;
+    private AudioInfo mAudioInfo;
     private int position;
     private final String TAG = "@MusicListAddActivity";
     private int playingFlag = 0;
@@ -168,17 +170,36 @@ public class MusicListPlatformActivity extends AppCompatActivity
         IntentFilter intentFilter = new IntentFilter("com.ifchan.litemusic.PLAY");
         registerReceiver(audioSetBroadcastReceiver, intentFilter);
 
-        View viewToPager = findViewById(R.id.view_to_pager);
-        viewToPager.setOnClickListener(new View.OnClickListener() {
+        View viewToPager1 = findViewById(R.id.view_to_pager_1);
+        viewToPager1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(player.myIsPlaying()) {
+                if(player.myIsPlaying() && serviceBound) {
                     Intent intentToPager = new Intent(MusicListPlatformActivity.this,
                             SwipedPagesActivity.class);
                     intentToPager.putExtra(getResources().getString(R.string.intent_lrclist),
                             mLrcLineList);
                     intentToPager.putExtra(getResources().getString(R.string.player_position),
                             player.getCurrentPosition());
+                    intentToPager.putExtra(getResources().getString(R.string.intent_audio_info),
+                            mAudioInfo);
+                    startActivity(intentToPager);
+                }
+            }
+        });
+        View viewToPager2 = findViewById(R.id.view_to_pager_1);
+        viewToPager2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(player.myIsPlaying() && serviceBound) {
+                    Intent intentToPager = new Intent(MusicListPlatformActivity.this,
+                            SwipedPagesActivity.class);
+                    intentToPager.putExtra(getResources().getString(R.string.intent_lrclist),
+                            mLrcLineList);
+                    intentToPager.putExtra(getResources().getString(R.string.player_position),
+                            player.getCurrentPosition());
+                    intentToPager.putExtra(getResources().getString(R.string.intent_audio_info),
+                            mAudioInfo);
                     startActivity(intentToPager);
                 }
             }
@@ -254,7 +275,12 @@ public class MusicListPlatformActivity extends AppCompatActivity
         String lrcPath = path.substring(0, path.lastIndexOf('/') + 1) + title
                 .substring(0, title.lastIndexOf('.') + 1) + "lrc";
         mLrcLineList = lrcHelper.getLrcList(new File(lrcPath));
+        mAudioInfo = new AudioInfo();
+        mAudioInfo.setAlbum(lrcHelper.getAlbum());
+        mAudioInfo.setName(lrcHelper.getArtist());
+        mAudioInfo.setTitle(lrcHelper.getTitle());
     }
+
 
     private void startTimer() {
         Timer timer = new Timer();
@@ -443,5 +469,35 @@ public class MusicListPlatformActivity extends AppCompatActivity
         //may be wrong!
         setResult(RESULT_EDIT_OK, intentBack);
         finish();
+    }
+}
+
+class AudioInfo implements Serializable{
+    private String title;
+    private String name;
+    private String album;
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAlbum() {
+        return album;
+    }
+
+    public void setAlbum(String album) {
+        this.album = album;
     }
 }

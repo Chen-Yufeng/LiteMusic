@@ -7,4 +7,10 @@
     <dimen name="lyric_hieght">30dp</dimen>
     <dimen name="lrc_hightlight_size">25sp</dimen>
     <dimen name="lrc_normal_size">15sp</dimen>
+
+    <!--
+Refer to App Widget Documentation for margin information
+http://developer.android.com/guide/topics/appwidgets/index.html#CreatingLayout
+    -->
+    <dimen name="widget_margin">8dp</dimen>
 </resources>

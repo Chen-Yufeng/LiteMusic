@@ -8,4 +8,6 @@
     <string name="player_position">PLAYER</string>
     <string name="loop_position">LOOP_POSITION</string>
     <string name="loop_broadcast_to_pager">LOOP_BROADCAST_TO_PAGER</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
 </resources>

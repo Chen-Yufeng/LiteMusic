@@ -74,16 +74,17 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
         pager.setCurrentItem(1);
 
         registerReceiver(new BroadcastReceiver() {
-            boolean bl = false;
+//            boolean bl = false;
             @Override
             public void onReceive(Context context, Intent intent) {
                 position = intent.getIntExtra(getResources().getString(R.string.loop_position),0);
-                lrcTextView.setListAndPosition(lrcList,position);
-//                if (bl) {
-//                    lrcTextView.invalidate();
-//                } else {
-//                    bl = true;
-//                }
+//                viewContainer.remove(1);
+//                LayoutInflater layoutInflater = getLayoutInflater().from(SwipedPagesActivity.this);
+//                View page2 = layoutInflater.inflate(R.layout.page2, null);
+//                final LrcTextView lrcTextView = page2.findViewById(R.id.lrc_text_view);
+//                lrcTextView.setListAndPosition(lrcList,position);
+//                viewContainer.add(1,page2);
+//                pager.setCurrentItem(1);
             }
         },new IntentFilter(getResources().getString(R.string.loop_broadcast_to_pager)));
     }

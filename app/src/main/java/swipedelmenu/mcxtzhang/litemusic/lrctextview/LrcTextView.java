@@ -64,6 +64,11 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
         this.position = position;
     }
 
+    public void setPosition(long position) {
+        this.position = position;
+        invalidate();
+    }
+
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);

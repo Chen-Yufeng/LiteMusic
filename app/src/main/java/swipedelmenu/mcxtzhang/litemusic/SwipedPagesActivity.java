@@ -127,11 +127,11 @@ public class SwipedPagesActivity extends AppCompatActivity implements ViewPager
             @Override
             public void onReceive(Context context, Intent intent) {
                 position = intent.getIntExtra(getResources().getString(R.string.loop_position),0);
-//                if (bl) {
-//                    lrcTextView.setPosition(position);
-//                } else {
-//                    bl = true;
-//                }
+                if (bl) {
+                    lrcTextView.setPosition(position);
+                } else {
+                    bl = true;
+                }
 //                viewContainer.remove(1);
 //                LayoutInflater layoutInflater = getLayoutInflater().from(SwipedPagesActivity.this);
 //                View page2 = layoutInflater.inflate(R.layout.page2, null);

@@ -108,7 +108,7 @@ public class MusicListPlatformActivity extends AppCompatActivity
         Intent intent = getIntent();
         audioList = (ArrayList<Audio>) intent.getSerializableExtra("audioList");
         //test
-        audioList.add(new Audio("b.mp3","/sdcard/Download/b.mp3"));
+//        audioList.add(new Audio("b.mp3","/sdcard/Download/b.mp3"));
         position = intent.getIntExtra("position", 0);
         editTextName.setText(intent.getStringExtra("name"));
 

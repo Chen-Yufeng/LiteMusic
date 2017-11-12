@@ -7,7 +7,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,9 +20,9 @@ import swipedelmenu.mcxtzhang.litemusic.entity.LrcLine;
 
 public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
     private final String TAG = "@vir LrcTextView";
-    private float hightlightSize;
+    private float highlightSize;
     private float normalSize;
-    private int hightLightColor;
+    private int highLightColor;
     private int normalColor;
     private int halfViewW, halfViewH;
     private Paint paint;
@@ -48,15 +47,15 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
     }
 
     private void initialize() {
-        hightlightSize = getResources().getDimension(R.dimen.lrc_hightlight_size);
+        highlightSize = getResources().getDimension(R.dimen.lrc_hightlight_size);
         normalSize = getResources().getDimension(R.dimen.lrc_normal_size);
-        hightLightColor = Color.GRAY;
+        highLightColor = Color.GRAY;
         normalColor = Color.GRAY;
         lyricHeight = getResources().getDimensionPixelOffset(R.dimen.lyric_hieght);//行高
         paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setTextSize(hightlightSize);
-        paint.setColor(hightLightColor);
+        paint.setTextSize(highlightSize);
+        paint.setColor(highLightColor);
     }
 
     public void setListAndPosition(ArrayList<LrcLine> lrcList, long position) {
@@ -66,6 +65,7 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
     }
 
     public void setPosition(long position) {
+        Log.d(TAG, String.valueOf(position));
         this.position = position;
         invalidate();
     }
@@ -88,17 +88,17 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
 //        int drawY = halfTextH + halfViewH;
 //
 //        canvas.drawText("loading", drawX, drawY, paint);
-        drawMutiLineText(canvas);
+        drawMultiLineText(canvas);
     }
 
-    private void drawMutiLineText(Canvas canvas) {
+    private void drawMultiLineText(Canvas canvas) {
 //        currentline
         currentLine = 0;
         List<LrcLine> lyricBeans = new ArrayList<>();
         if (mLrcLines == null) {
-            Log.e(TAG, "drawMutiLineText: ISNULL");
+            Log.e(TAG, "drawMultiLineText: ISNULL");
         }
-        Log.d(TAG, "drawMutiLineText: size="+mLrcLines.size());
+        Log.d(TAG, "drawMultiLineText: size="+mLrcLines.size());
         LrcLine temp = mLrcLines.get(currentLine);
         if (mLrcLines.size() > 5) {
             if (position > mLrcLines.get(mLrcLines.size() - 3).getMillisecond()) {
@@ -153,8 +153,8 @@ public class LrcTextView extends android.support.v7.widget.AppCompatTextView {
 
         for (int i = 0; i < lyricBeans.size(); i++) {
             if (i == currentLine) {
-                paint.setColor(hightLightColor);
-                paint.setTextSize(hightlightSize);
+                paint.setColor(highLightColor);
+                paint.setTextSize(highlightSize);
             } else {
                 paint.setColor(normalColor);
                 paint.setTextSize(normalSize);
